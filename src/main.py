@@ -187,31 +187,20 @@ def main(page: ft.Page):
                         ft.ListView(
                             [
                                 Text(value='Selecione sua idade:', size=22, weight=ft.FontWeight.BOLD),
+
                                 slider_idade,
                                 txt_idade,
+
                                 Text(value='Selecione seu gênero:', size=22, weight=ft.FontWeight.BOLD),
-                                ft.RadioGroup(content=ft.Column([
-                                    ft.Radio(value="homem", label="Homem", fill_color={
-                                        ft.ControlState.HOVERED: "#191970",
-                                        ft.ControlState.DEFAULT: "cyan",
-                                    }),
-                                    ft.Radio(value="mulher", label="Mulher", fill_color={
-                                        ft.ControlState.HOVERED: "#191970",
-                                        ft.ControlState.DEFAULT: "cyan",
-                                    })])),
+                                radio_genero,
                                 Text(value='Selecione seu tempo de contribuição:', size=22, weight=ft.FontWeight.BOLD),
+
                                 slider_tempo_contribuicao,
                                 txt_tempo_contribuicao,
+
                                 Text(value='Selecione a categoria da aposentadoria desejada:', size=22, weight=ft.FontWeight.BOLD),
-                                ft.RadioGroup(content=ft.Column([
-                                    ft.Radio(value="porIdade", label="Por idade", fill_color={
-                                        ft.ControlState.HOVERED: "#191970",
-                                        ft.ControlState.DEFAULT: "cyan",
-                                    }),
-                                    ft.Radio(value="porTempo", label="Por tempo de contribuição", fill_color={
-                                        ft.ControlState.HOVERED: "#191970",
-                                        ft.ControlState.DEFAULT: "cyan",
-                                    })])),
+                                radio_categoria,
+
                                 ft.Container(
                                     content=ft.Column(
                                         [
@@ -219,7 +208,8 @@ def main(page: ft.Page):
                                                            width=(page.window.width / 2),
                                                            color="#C6E2FF",
                                                            bgcolor="#191970",
-                                                           on_click=lambda _: page.go('/resultado'))
+                                                           on_click=exibir_info)
+                                                           # lambda _: page.go('/resultado'))
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
                                         horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -251,13 +241,19 @@ def main(page: ft.Page):
         txt_tempo_contribuicao.value = f'TEMPO DE CONTRIBUIÇÃO: {int(e.control.value)}'
         page.update()
 
+    def exibir_info(e):
+        print('radio genero', radio_genero.value)
+        print('radio categoria', radio_categoria.value)
+        print('tempo contribuicao', slider_tempo_contribuicao.value)
+        print('idade', slider_idade.value)
+
     page.on_route_change = gerencia_rotas
     page.go(page.route)
     page.on_view_pop = volta
 
     #     Criação de componentes
     txt_idade = Text(value='IDADE: 18', size=20, weight=ft.FontWeight.BOLD, bgcolor="cyan")
-    slider_idade = ft.Slider(min=18, max=100, divisions=80, label="{value}",
+    slider_idade = ft.Slider(min=18, max=100, divisions=82, label="{value}",
                                   overlay_color="dark_blue", active_color="cyan",
                                   inactive_color="grey", on_change=slider_change_idade)
 
@@ -265,5 +261,25 @@ def main(page: ft.Page):
     slider_tempo_contribuicao = ft.Slider(min=0, max=90, divisions=90, label="{value}",
                              overlay_color="dark_blue", active_color="cyan",
                              inactive_color="grey", on_change=slider_change_tempo)
+
+    radio_genero = ft.RadioGroup(content=ft.Column([
+                                    ft.Radio(value="homem", label="Homem", fill_color={
+                                        ft.ControlState.HOVERED: "#191970",
+                                        ft.ControlState.DEFAULT: "cyan",
+                                    }),
+                                    ft.Radio(value="mulher", label="Mulher", fill_color={
+                                        ft.ControlState.HOVERED: "#191970",
+                                        ft.ControlState.DEFAULT: "cyan",
+                                    })]))
+
+    radio_categoria = ft.RadioGroup(content=ft.Column([
+                                    ft.Radio(value="porIdade", label="Por idade", fill_color={
+                                        ft.ControlState.HOVERED: "#191970",
+                                        ft.ControlState.DEFAULT: "cyan",
+                                    }),
+                                    ft.Radio(value="porTempo", label="Por tempo de contribuição", fill_color={
+                                        ft.ControlState.HOVERED: "#191970",
+                                        ft.ControlState.DEFAULT: "cyan",
+                                    })]))
 
 ft.app(main)
