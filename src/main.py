@@ -332,10 +332,6 @@ def main(page: ft.Page):
             txt_resultado.value = (f'Você não é capaz de se aposentar por {cat}.'
                                    f' por motivo de {motivo}')
 
-
-
-
-
     def slider_change_idade(e):
         txt_idade.value = f'IDADE: {int(e.control.value)}'
         page.update()
