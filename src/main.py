@@ -226,12 +226,115 @@ def main(page: ft.Page):
 
                 )
             )
+
+        elif page.route == '/resultados':
+            page.views.append(
+                View(
+                    '/resultados',
+                    [
+                        AppBar(title=Text('Simular'), color="#C6E2FF", bgcolor="#191970", center_title=True),
+                        ft.Container(
+                            content=ft.Column(
+                                [
+                                    txt_resultado
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                                # Alinha no centro horizontalmente
+                            ),
+                            alignment=ft.alignment.center,  # Centraliza o Container
+                        )
+
+                    ],
+                    bgcolor="#C6E2FF"
+                )
+            )
+
         page.update()
 
-    def volta(e):
-        page.views.pop()
-        top_view = page.views[-1]
-        page.go(top_view.route)
+    def calcular_beneficio(e):
+        qualificado=None
+        motivo=None
+        cat=None
+        if radio_categoria.value == 'porIdade' and radio_genero.value == 'homem':
+            cat = 'por idade'
+            if slider_idade.value >= 65 and slider_tempo_contribuicao.value >= 15:
+                qualificado = True
+                motivo = 'idade'
+            elif slider_idade.value < 65 and slider_tempo_contribuicao.value > 15:
+                qualificado = False
+                motivo = 'idade'
+            elif slider_idade.value > 65 and slider_tempo_contribuicao.value < 15:
+                qualificado = False
+                motivo = 'tempo'
+            elif slider_idade.value < 65 and slider_tempo_contribuicao.value < 15:
+                qualificado = False
+                motivo = 'ambos'
+
+        elif radio_categoria.value == 'porTempo' and radio_genero.value == 'homem':
+            cat = 'por tempo'
+            if slider_tempo_contribuicao.value >= 35:
+                qualificado = True
+                motivo = 'tempo'
+            elif slider_tempo_contribuicao.value < 35:
+                qualificado = False
+                motivo = 'tempo'
+
+        elif radio_categoria.value == 'porIdade' and radio_genero.value == 'mulher':
+            cat = 'por idade'
+            if slider_idade.value >= 62 and slider_tempo_contribuicao.value >= 15:
+                qualificado = True
+                motivo = 'idade'
+            elif slider_idade.value < 62 and slider_tempo_contribuicao.value > 15:
+                qualificado = False
+                motivo = 'idade'
+            elif slider_idade.value > 62 and slider_tempo_contribuicao.value < 15:
+                qualificado = False
+                motivo = 'tempo'
+            elif slider_idade.value < 62 and slider_tempo_contribuicao.value < 15:
+                qualificado = False
+                motivo = 'idade e tempo'
+
+        elif radio_categoria.value == 'porTempo' and radio_genero.value == 'mulher':
+            cat = 'por tempo'
+            if slider_tempo_contribuicao.value >= 30:
+                qualificado = True
+                motivo = 'tempo'
+            elif slider_tempo_contribuicao.value < 30:
+                qualificado = False
+                motivo = 'tempo'
+        valor_beneficio = None
+        if qualificado:
+            txt_resultado.value = f'Parabéns! Você se qualifica para a aposentadoria por {cat}'
+        else:
+            tmp = slider_tempo_contribuicao.value
+            idade = slider_idade.value
+            if cat == 'por tempo' and motivo == 'tempo':
+                if radio_genero.value == 'homem':
+                    delta = 35 - tmp
+                else:
+                    delta = 30 - tmp
+            elif cat == 'por idade' and motivo == 'tempo':
+                if radio_genero.value == 'homem':
+                    delta = 15 - tmp
+                else:
+                    delta = 15 - tmp
+            elif cat == 'por idade' and motivo == 'idade':
+                if radio_genero.value == 'homem':
+                    delta = 65 - idade
+                else:
+                    delta = 62 - idade
+            elif cat == 'por idade' and motivo == 'idade e tempo':
+                if radio_genero.value == 'homem':
+                    delta = [65-idade, 15-tmp]
+                else:
+                    delta = [62-idade, 15-tmp]
+            txt_resultado.value = (f'Você não é capaz de se aposentar por {cat}.'
+                                   f' por motivo de {motivo}')
+
+
+
+
 
     def slider_change_idade(e):
         txt_idade.value = f'IDADE: {int(e.control.value)}'
@@ -246,6 +349,11 @@ def main(page: ft.Page):
         print('radio categoria', radio_categoria.value)
         print('tempo contribuicao', slider_tempo_contribuicao.value)
         print('idade', slider_idade.value)
+
+    def volta(e):
+        page.views.pop()
+        top_view = page.views[-1]
+        page.go(top_view.route)
 
     page.on_route_change = gerencia_rotas
     page.go(page.route)
@@ -281,5 +389,6 @@ def main(page: ft.Page):
                                         ft.ControlState.HOVERED: "#191970",
                                         ft.ControlState.DEFAULT: "cyan",
                                     })]))
+    txt_resultado = Text(value='', size=24, )
 
 ft.app(main)
