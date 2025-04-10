@@ -201,6 +201,9 @@ def main(page: ft.Page):
                                 Text(value='Selecione a categoria da aposentadoria desejada:', size=22, weight=ft.FontWeight.BOLD),
                                 radio_categoria,
 
+                                slider_salario,
+                                txt_salario,
+
                                 ft.Container(
                                     content=ft.Column(
                                         [
@@ -208,8 +211,8 @@ def main(page: ft.Page):
                                                            width=(page.window.width / 2),
                                                            color="#C6E2FF",
                                                            bgcolor="#191970",
-                                                           on_click=exibir_info)
-                                                           # lambda _: page.go('/resultado'))
+                                                           # on_click=exibir_info)
+                                                           on_click=lambda _: page.go('/resultado'))
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
                                         horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -227,10 +230,11 @@ def main(page: ft.Page):
                 )
             )
 
-        elif page.route == '/resultados':
+        elif page.route == '/resultado':
+            calcular_beneficio()
             page.views.append(
                 View(
-                    '/resultados',
+                    '/resultado',
                     [
                         AppBar(title=Text('Simular'), color="#C6E2FF", bgcolor="#191970", center_title=True),
                         ft.Container(
@@ -252,7 +256,7 @@ def main(page: ft.Page):
 
         page.update()
 
-    def calcular_beneficio(e):
+    def calcular_beneficio():
         qualificado=None
         motivo=None
         cat=None
@@ -261,36 +265,36 @@ def main(page: ft.Page):
             if slider_idade.value >= 65 and slider_tempo_contribuicao.value >= 15:
                 qualificado = True
                 motivo = 'idade'
-            elif slider_idade.value < 65 and slider_tempo_contribuicao.value > 15:
+            elif slider_idade.value < 65 and slider_tempo_contribuicao.value >= 15:
                 qualificado = False
                 motivo = 'idade'
-            elif slider_idade.value > 65 and slider_tempo_contribuicao.value < 15:
+            elif slider_idade.value >= 65 and slider_tempo_contribuicao.value < 15:
                 qualificado = False
-                motivo = 'tempo'
+                motivo = 'tempo de contribuição'
             elif slider_idade.value < 65 and slider_tempo_contribuicao.value < 15:
                 qualificado = False
-                motivo = 'ambos'
+                motivo = 'idade e tempo'
 
         elif radio_categoria.value == 'porTempo' and radio_genero.value == 'homem':
             cat = 'por tempo'
             if slider_tempo_contribuicao.value >= 35:
                 qualificado = True
-                motivo = 'tempo'
+                motivo = 'tempo de contribuição'
             elif slider_tempo_contribuicao.value < 35:
                 qualificado = False
-                motivo = 'tempo'
+                motivo = 'tempo de contribuição'
 
         elif radio_categoria.value == 'porIdade' and radio_genero.value == 'mulher':
             cat = 'por idade'
             if slider_idade.value >= 62 and slider_tempo_contribuicao.value >= 15:
                 qualificado = True
                 motivo = 'idade'
-            elif slider_idade.value < 62 and slider_tempo_contribuicao.value > 15:
+            elif slider_idade.value < 62 and slider_tempo_contribuicao.value >= 15:
                 qualificado = False
                 motivo = 'idade'
-            elif slider_idade.value > 62 and slider_tempo_contribuicao.value < 15:
+            elif slider_idade.value >= 62 and slider_tempo_contribuicao.value < 15:
                 qualificado = False
-                motivo = 'tempo'
+                motivo = 'tempo de contribuição'
             elif slider_idade.value < 62 and slider_tempo_contribuicao.value < 15:
                 qualificado = False
                 motivo = 'idade e tempo'
@@ -299,38 +303,34 @@ def main(page: ft.Page):
             cat = 'por tempo'
             if slider_tempo_contribuicao.value >= 30:
                 qualificado = True
-                motivo = 'tempo'
+                motivo = 'tempo de contribuição'
             elif slider_tempo_contribuicao.value < 30:
                 qualificado = False
-                motivo = 'tempo'
-        valor_beneficio = None
+                motivo = 'tempo de contribuição'
+
         if qualificado:
-            txt_resultado.value = f'Parabéns! Você se qualifica para a aposentadoria por {cat}'
+            salario = slider_salario.value
+            tmp_delta = calcular_variacao(cat, motivo)
+            tmp_delta = tmp_delta[1] * -1
+            print(tmp_delta)
+            print(salario)
+            valor_beneficio = salario * (0.6 + (tmp_delta * 0.02))
+
+            txt_resultado.value = (f'Parabéns! Você se qualifica para a aposentadoria {cat}'
+                                   f'O valor estimado do seu benefício é de: {valor_beneficio} R$')
         else:
-            tmp = slider_tempo_contribuicao.value
-            idade = slider_idade.value
-            if cat == 'por tempo' and motivo == 'tempo':
-                if radio_genero.value == 'homem':
-                    delta = 35 - tmp
-                else:
-                    delta = 30 - tmp
-            elif cat == 'por idade' and motivo == 'tempo':
-                if radio_genero.value == 'homem':
-                    delta = 15 - tmp
-                else:
-                    delta = 15 - tmp
-            elif cat == 'por idade' and motivo == 'idade':
-                if radio_genero.value == 'homem':
-                    delta = 65 - idade
-                else:
-                    delta = 62 - idade
-            elif cat == 'por idade' and motivo == 'idade e tempo':
-                if radio_genero.value == 'homem':
-                    delta = [65-idade, 15-tmp]
-                else:
-                    delta = [62-idade, 15-tmp]
-            txt_resultado.value = (f'Você não é capaz de se aposentar por {cat}.'
-                                   f' por motivo de {motivo}')
+            lista_delta = calcular_variacao(cat, motivo)
+            if motivo == 'idade':
+                txt_resultado.value = (f'Você não é capaz de se aposentar {cat}.'
+                                       f' pois ainda faltam mais {int(lista_delta[0])} anos de {motivo}.')
+            if motivo == 'tempo de contribuição':
+                txt_resultado.value = (f'Você não é capaz de se aposentar {cat}.'
+                                       f' pois ainda faltam mais {int(lista_delta[1])} anos de {motivo}.')
+            else:
+                txt_resultado.value = (f'Você não é capaz de se aposentar {cat}.'
+                                       f' pois ainda possui pouca {motivo} de contribuição,'
+                                       f' faltam {int(lista_delta[0])} {'ano' if int(lista_delta[0]) == 1 else 'anos'} de idade e '
+                                       f'{int(lista_delta[1])} {'ano' if int(lista_delta[1]) == 1 else 'anos'} de contribuição.')
 
     def slider_change_idade(e):
         txt_idade.value = f'IDADE: {int(e.control.value)}'
@@ -339,6 +339,37 @@ def main(page: ft.Page):
     def slider_change_tempo(e):
         txt_tempo_contribuicao.value = f'TEMPO DE CONTRIBUIÇÃO: {int(e.control.value)}'
         page.update()
+
+    def slider_salario(e):
+        txt_salario.value = f'SALÁRIO: {int(e.control.value)}'
+        page.update()
+
+    def calcular_variacao(cat, motivo):
+        tmp = slider_tempo_contribuicao.value
+        idade = slider_idade.value
+
+        lista_delta = None
+        if cat == 'por tempo' and motivo == 'tempo de contribuição':
+            if radio_genero.value == 'homem':
+                lista_delta = [65 - idade, 35 - tmp]
+            else:
+                lista_delta = [65 - idade, 30 - tmp]
+        elif cat == 'por idade' and motivo == 'tempo de contribuição':
+            if radio_genero.value == 'homem':
+                lista_delta = [65 - idade, 15 - tmp]
+            else:
+                lista_delta = [62 - idade, 15 - tmp]
+        elif cat == 'por idade' and motivo == 'idade':
+            if radio_genero.value == 'homem':
+                lista_delta = [65 - idade, 15 - tmp]
+            else:
+                lista_delta = [62 - idade, 15 - tmp]
+        elif cat == 'por idade' and motivo == 'idade e tempo':
+            if radio_genero.value == 'homem':
+                lista_delta = [65 - idade, 15 - tmp]
+            else:
+                lista_delta = [62 - idade, 15 - tmp]
+        return lista_delta
 
     def exibir_info(e):
         print('radio genero', radio_genero.value)
@@ -365,6 +396,11 @@ def main(page: ft.Page):
     slider_tempo_contribuicao = ft.Slider(min=0, max=90, divisions=90, label="{value}",
                              overlay_color="dark_blue", active_color="cyan",
                              inactive_color="grey", on_change=slider_change_tempo)
+
+    txt_salario = Text(value='SALÁRIO: 0', size=20, weight=ft.FontWeight.BOLD, bgcolor="cyan")
+    slider_salario = ft.Slider(min=1500, max=10000, divisions=85, label="{value}",
+                                          overlay_color="dark_blue", active_color="cyan",
+                                          inactive_color="grey", on_change=slider_salario)
 
     radio_genero = ft.RadioGroup(content=ft.Column([
                                     ft.Radio(value="homem", label="Homem", fill_color={
