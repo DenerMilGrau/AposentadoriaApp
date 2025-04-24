@@ -1,6 +1,6 @@
 import flet as ft
 from flet import AppBar, ElevatedButton, Text, Colors, View, Icons
-from flet.core import slider
+from flet.core import slider, view
 from flet.core.list_view import ListView
 from flet.core.text_style import TextStyle
 from flet.core.textfield import TextField
@@ -22,53 +22,55 @@ def main(page: ft.Page):
     # Definição de funções
 
     def gerencia_rotas(e):
-        page.views.clear()
-        page.views.append(
-            View(
-                '/',
-                [
-                    AppBar(title=Text('Simulador de aposentadoria'), color="#C6E2FF", bgcolor="#191970", center_title=True),
 
-                    ft.Container(
-                        content=ft.Column(
-                            [
-                                # ft.Icon(name=Icons.ATTACH_MONEY_ROUNDED, color="#191970", size=100),
-                                ft.Image(src=f"inss.png",
-                                         width=(page.window.width / 2),
-                                         fit=ft.ImageFit.CONTAIN)
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Alinha no centro horizontalmente
-                        ),
-                        alignment=ft.alignment.center,  # Centraliza o Container
-                        padding=ft.padding.only(top=80)  # Ajuste para mover um pouco para baixo
-                    ),
-                    ft.Container(
-                        content=ft.Column(
-                            [
-                                ElevatedButton(text='Simular aposentadoria',
-                                               width=(page.window.width / 2),
-                                               color="#C6E2FF",
-                                               bgcolor="#191970",
-                                               on_click=lambda _: page.go('/simular_aposentadoria')),
-                                ElevatedButton(text='Ver regras',
-                                               width=(page.window.width / 2),
-                                               color="#C6E2FF",
-                                               bgcolor="#191970",
-                                               on_click=lambda _: page.go('/regras')
-                                               )
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Alinha no centro horizontalmente
-                        ),
-                        alignment=ft.alignment.center,  # Centraliza o Container
-                        padding=ft.padding.only(top=80)  # Ajuste para mover um pouco para baixo
-                    )
+        if page.route == '/':
+            page.views.clear()
+            page.views.append(
+                View(
+                    '/',
+                    [
+                        AppBar(title=Text('Simulador de aposentadoria'), color="#C6E2FF", bgcolor="#191970", center_title=True),
 
-                ],  # controls
-                bgcolor="#C6E2FF",
+                        ft.Container(
+                            content=ft.Column(
+                                [
+                                    # ft.Icon(name=Icons.ATTACH_MONEY_ROUNDED, color="#191970", size=100),
+                                    ft.Image(src=f"inss.png",
+                                             width=(page.window.width / 2),
+                                             fit=ft.ImageFit.CONTAIN)
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Alinha no centro horizontalmente
+                            ),
+                            alignment=ft.alignment.center,  # Centraliza o Container
+                            padding=ft.padding.only(top=80)  # Ajuste para mover um pouco para baixo
+                        ),
+                        ft.Container(
+                            content=ft.Column(
+                                [
+                                    ElevatedButton(text='Simular aposentadoria',
+                                                   width=(page.window.width / 2),
+                                                   color="#C6E2FF",
+                                                   bgcolor="#191970",
+                                                   on_click=lambda _: page.go('/simular_aposentadoria')),
+                                    ElevatedButton(text='Ver regras',
+                                                   width=(page.window.width / 2),
+                                                   color="#C6E2FF",
+                                                   bgcolor="#191970",
+                                                   on_click=lambda _: page.go('/regras')
+                                                   )
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Alinha no centro horizontalmente
+                            ),
+                            alignment=ft.alignment.center,  # Centraliza o Container
+                            padding=ft.padding.only(top=80)  # Ajuste para mover um pouco para baixo
+                        )
+
+                    ],  # controls
+                    bgcolor="#C6E2FF",
+                )
             )
-        )
         if page.route == '/regras':
             page.views.append(
                 View(
@@ -178,7 +180,7 @@ def main(page: ft.Page):
                 )  # View
             )
 
-        if page.route == '/simular_aposentadoria':
+        elif page.route == '/simular_aposentadoria':
             page.views.append(
                 View(
                     '/simular_aposentadoria',
@@ -207,12 +209,8 @@ def main(page: ft.Page):
                                 ft.Container(
                                     content=ft.Column(
                                         [
-                                            ElevatedButton(text='Calcular',
-                                                           width=(page.window.width / 2),
-                                                           color="#C6E2FF",
-                                                           bgcolor="#191970",
-                                                           # on_click=exibir_info)
-                                                           on_click=lambda _: page.go('/resultado'))
+                                            btn_enviar,
+                                            btn_limpar
                                         ],
                                         alignment=ft.MainAxisAlignment.CENTER,  # Alinha no centro verticalmente
                                         horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -254,6 +252,9 @@ def main(page: ft.Page):
                 )
             )
 
+        # if page.route in page.views:
+
+        print(page.views)
         page.update()
 
     def calcular_beneficio():
@@ -307,7 +308,7 @@ def main(page: ft.Page):
             elif slider_tempo_contribuicao.value < 30:
                 qualificado = False
                 motivo = 'tempo de contribuição'
-
+        print(motivo)
         if qualificado:
             salario = slider_salario.value
             tmp_delta = calcular_variacao(cat, motivo)
@@ -316,21 +317,23 @@ def main(page: ft.Page):
             print(salario)
             valor_beneficio = salario * (0.6 + (tmp_delta * 0.02))
 
-            txt_resultado.value = (f'Parabéns! Você se qualifica para a aposentadoria {cat}'
-                                   f'O valor estimado do seu benefício é de: {valor_beneficio} R$')
+            txt_resultado.value = (f'Parabéns! Você se qualifica para a aposentadoria {cat}.'
+                                   f' O valor estimado do seu benefício é de: {round(valor_beneficio, 2)} R$')
         else:
+            print(motivo, '2')
             lista_delta = calcular_variacao(cat, motivo)
+            print(motivo, '3')
             if motivo == 'idade':
                 txt_resultado.value = (f'Você não é capaz de se aposentar {cat}.'
-                                       f' pois ainda faltam mais {int(lista_delta[0])} anos de {motivo}.')
-            if motivo == 'tempo de contribuição':
+                                       f' pois ainda faltam mais {int(abs(lista_delta[0]))} anos de {motivo}.')
+            elif motivo == 'tempo de contribuição':
                 txt_resultado.value = (f'Você não é capaz de se aposentar {cat}.'
-                                       f' pois ainda faltam mais {int(lista_delta[1])} anos de {motivo}.')
+                                       f' pois ainda faltam mais {int(abs(lista_delta[1]))} anos de {motivo}.')
             else:
                 txt_resultado.value = (f'Você não é capaz de se aposentar {cat}.'
                                        f' pois ainda possui pouca {motivo} de contribuição,'
-                                       f' faltam {int(lista_delta[0])} {'ano' if int(lista_delta[0]) == 1 else 'anos'} de idade e '
-                                       f'{int(lista_delta[1])} {'ano' if int(lista_delta[1]) == 1 else 'anos'} de contribuição.')
+                                       f' faltam {int(abs(lista_delta[0]))} {'ano' if (abs(lista_delta[0])) == 1 else 'anos'} de idade e '
+                                       f'{int(abs(lista_delta[1]))} {'ano' if int(abs(lista_delta[1])) == 1 else 'anos'} de contribuição.')
 
     def slider_change_idade(e):
         txt_idade.value = f'IDADE: {int(e.control.value)}'
@@ -350,21 +353,28 @@ def main(page: ft.Page):
 
         lista_delta = None
         if cat == 'por tempo' and motivo == 'tempo de contribuição':
+            print('tempo / tempo')
+
             if radio_genero.value == 'homem':
                 lista_delta = [65 - idade, 35 - tmp]
             else:
                 lista_delta = [65 - idade, 30 - tmp]
         elif cat == 'por idade' and motivo == 'tempo de contribuição':
+            print('idade / tempo')
+
             if radio_genero.value == 'homem':
                 lista_delta = [65 - idade, 15 - tmp]
             else:
                 lista_delta = [62 - idade, 15 - tmp]
         elif cat == 'por idade' and motivo == 'idade':
+            print('idade / idade')
             if radio_genero.value == 'homem':
                 lista_delta = [65 - idade, 15 - tmp]
             else:
                 lista_delta = [62 - idade, 15 - tmp]
         elif cat == 'por idade' and motivo == 'idade e tempo':
+            print('idade / idade-tempo')
+
             if radio_genero.value == 'homem':
                 lista_delta = [65 - idade, 15 - tmp]
             else:
@@ -377,14 +387,34 @@ def main(page: ft.Page):
         print('tempo contribuicao', slider_tempo_contribuicao.value)
         print('idade', slider_idade.value)
 
+    def verificar_campos(e):
+        lista = [slider_idade, slider_tempo_contribuicao, slider_salario, radio_genero, radio_categoria]
+        lista2 = []
+        for i in lista:
+            lista2.append(i.value)
+        print(lista2)
+        if None in lista2 or lista2[0] <= lista2[1] or lista2[0] - lista2[1] < 15 or '' in lista2:
+            page.open(bottom_sheet)
+        else:
+            page.go('/resultado')
+
+    def limpar(e):
+        slider_tempo_contribuicao.value = 0
+        slider_salario.value = 1500
+        slider_idade.value = 18
+        radio_categoria.value = None
+        radio_genero.value = None
+
+        page.update()
+
     def volta(e):
-        page.views.pop()
+        # page.views.pop()
+        print("View", page.views)
+        print("pop: ",page.views.pop())
         top_view = page.views[-1]
+        print("top: ",top_view)
         page.go(top_view.route)
 
-    page.on_route_change = gerencia_rotas
-    page.go(page.route)
-    page.on_view_pop = volta
 
     #     Criação de componentes
     txt_idade = Text(value='IDADE: 18', size=20, weight=ft.FontWeight.BOLD, bgcolor="cyan")
@@ -397,30 +427,67 @@ def main(page: ft.Page):
                              overlay_color="dark_blue", active_color="cyan",
                              inactive_color="grey", on_change=slider_change_tempo)
 
-    txt_salario = Text(value='SALÁRIO: 0', size=20, weight=ft.FontWeight.BOLD, bgcolor="cyan")
+    txt_salario = Text(value='SALÁRIO: 1500', size=20, weight=ft.FontWeight.BOLD, bgcolor="cyan")
     slider_salario = ft.Slider(min=1500, max=10000, divisions=85, label="{value}",
                                           overlay_color="dark_blue", active_color="cyan",
                                           inactive_color="grey", on_change=slider_salario)
 
     radio_genero = ft.RadioGroup(content=ft.Column([
-                                    ft.Radio(value="homem", label="Homem", fill_color={
+                                    ft.Radio(value="homem", label="Homem", toggleable=True, fill_color={
                                         ft.ControlState.HOVERED: "#191970",
                                         ft.ControlState.DEFAULT: "cyan",
                                     }),
-                                    ft.Radio(value="mulher", label="Mulher", fill_color={
+                                    ft.Radio(value="mulher", label="Mulher", toggleable=True, fill_color={
                                         ft.ControlState.HOVERED: "#191970",
                                         ft.ControlState.DEFAULT: "cyan",
                                     })]))
 
     radio_categoria = ft.RadioGroup(content=ft.Column([
-                                    ft.Radio(value="porIdade", label="Por idade", fill_color={
+                                    ft.Radio(value="porIdade", label="Por idade", toggleable=True, fill_color={
                                         ft.ControlState.HOVERED: "#191970",
                                         ft.ControlState.DEFAULT: "cyan",
                                     }),
-                                    ft.Radio(value="porTempo", label="Por tempo de contribuição", fill_color={
+                                    ft.Radio(value="porTempo", label="Por tempo de contribuição", toggleable=True, fill_color={
                                         ft.ControlState.HOVERED: "#191970",
                                         ft.ControlState.DEFAULT: "cyan",
                                     })]))
+
+    btn_enviar = ElevatedButton(text='Calcular',
+                   width=(page.window.width / 2),
+                   color="#C6E2FF",
+                   bgcolor="#191970",
+                   # on_click=exibir_info)
+                   on_click=verificar_campos)
+    btn_limpar = ElevatedButton(text='Limpar',
+                                width=(page.window.width / 2),
+                                color="#C6E2FF",
+                                bgcolor="#191970",
+                                # on_click=exibir_info)
+                                on_click=limpar)
+
+    bottom_sheet = ft.BottomSheet(
+        bgcolor="#191970",
+        dismissible=True,
+        # on_dismiss=handle_dismissal,
+        content=ft.Container(
+            padding=50,
+            content=ft.Column(
+                tight=True,
+                controls=[
+                    ft.Text("Preencha todos os campos com informações corretas", color="#C6E2FF"),
+                    ft.ElevatedButton("Fechar", bgcolor="#C6E2FF", color="#191970",on_click=lambda _: page.close(bottom_sheet)),
+                ]
+            )
+        )
+    )
+
+
+
     txt_resultado = Text(value='', size=24, )
+
+    page.on_route_change = gerencia_rotas
+    page.on_view_pop = volta
+
+    page.go(page.route)
 
 ft.app(main)
